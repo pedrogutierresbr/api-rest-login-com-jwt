@@ -2,8 +2,15 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const { registerValidate, loginValidate } = require("./validate");
+
 async function register(req, res) {
     let salt = bcrypt.genSaltSync(14);
+
+    const { error } = registerValidate(req.body);
+    if (error) {
+        return res.status(400).send(error.message);
+    }
 
     //condicional para que não tenha email duplicado
     const selectedUser = await User.findOne({ email: req.body.email });
@@ -25,6 +32,11 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
+    const { error } = loginValidate(req.body);
+    if (error) {
+        return res.status(400).send(error.message);
+    }
+
     const selectedUser = await User.findOne({ email: req.body.email });
     if (!selectedUser) return res.status(400).send("Email or Password incorrect");
 
